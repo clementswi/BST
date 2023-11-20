@@ -190,6 +190,12 @@ class AVL(BST):
         y = z.left
         T2 = y.right
 
+        # Update parent pointers
+        y.parent = z.parent
+        z.parent = y
+        if T2:
+            T2.parent = z
+
         # Perform rotation
         y.right = z
         z.left = T2
@@ -197,6 +203,8 @@ class AVL(BST):
         # Update heights
         z.height = 1 + max(self._height(z.left), self._height(z.right))
         y.height = 1 + max(self._height(y.left), self._height(y.right))
+
+        return y
 
         return y
 
@@ -212,6 +220,12 @@ class AVL(BST):
         """
         x = y.right
         T2 = x.left
+
+        # Update parent pointers
+        x.parent = y.parent
+        y.parent = x
+        if T2:
+            T2.parent = y
 
         # Perform rotation
         x.left = y

@@ -126,35 +126,26 @@ class BST:
             # Call a helper function to recursively add the value to the tree.
             self._add_recursive(self._root, value)
 
-    def _add_recursive(self, node: BSTNode, value: object) -> None:
+    def _add_recursive(self, node: BSTNode, value: object) -> BSTNode:
         """
-        Helper method for recursive addition of a value to the tree.
+        Helper method for recursive addition of a value to the BST.
 
         Parameters:
         - node: The current node in the recursion.
         - value: The value to be added to the tree.
 
         Returns:
-        - None
+        - BSTNode: The root of the modified subtree.
         """
-        if value <= node.value:
-            # If the value is less than or equal to the current node's value,
-            # go to the left subtree.
-            if node.left is None:
-                # If the left child is None, create a new node.
-                node.left = BSTNode(value)
-            else:
-                # Recursively call the function on the left subtree.
-                self._add_recursive(node.left, value)
+        # Perform standard BST insert
+        if node is None:
+            return BSTNode(value)
+        elif value < node.value:
+            node.left = self._add_recursive(node.left, value)
         else:
-            # If the value is greater than the current node's value,
-            # go to the right subtree.
-            if node.right is None:
-                # If the right child is None, create a new node.
-                node.right = BSTNode(value)
-            else:
-                # Recursively call the function on the right subtree.
-                self._add_recursive(node.right, value)
+            node.right = self._add_recursive(node.right, value)
+
+        return node
 
     def remove(self, value: object) -> bool: #passes the prescribed tests
         """

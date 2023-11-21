@@ -97,234 +97,221 @@ class AVL(BST):
                 stack.push(node.left)
         return True
 
+
+
     # ------------------------------------------------------------------ #
 
-    def add(self, value):
+    def add(self, value: object) -> None: #passes the first two prescribed tests
         """
-        Add a new value to the AVL tree. Duplicate values are allowed.
-        If a node with that value is already in the tree, the new value
-        is added to the right subtree of that node.
+                Add a new value to the AVL tree while maintaining its AVL property.
 
-        Overrides the add() method in the BST class to ensure AVL balance.
+                Parameters:
+                - value: The value to be added to the tree.
 
-        O(log N) runtime complexity.
-
-        Parameters:
-        - value: The value to be added to the tree.
-
-        Returns:
-        - None
-        """
-        if self._root is None:
-            # If the tree is empty, create a new node as the root.
-            self._root = AVLNode(value)
-        else:
-            # Call a helper function to recursively add the value to the tree.
+                Returns:
+                - None
+                """
+        if not self.contains(value):
             self._root = self._add_recursive(self._root, value)
 
-        # Update the height of the root node.
-        self._root.height = 1 + max(self._get_height(self._root.left), self._get_height(self._root.right))
+    def _height(self, node):
+        """Helper method to get the height of a node."""
+        if node is None:
+            return -1
+        return node.height
 
-    def _add_recursive(self, node, value):
+    def _add_recursive(self, node: AVLNode, value: object) -> AVLNode:
         """
-        Helper method for recursive addition of a value to the AVL tree.
+            Helper method for recursive addition of a value to the AVL tree.
 
-        Parameters:
-        - node: The current node in the recursion.
-        - value: The value to be added to the tree.
+            Parameters:
+            - node: The current node in the recursion.
+            - value: The value to be added to the tree.
 
-        Returns:
-        - AVLNode: The root of the modified subtree.
-        """
+            Returns:
+            - AVLNode: The root of the modified subtree.
+            """
         # Perform standard BST insert
         if node is None:
             return AVLNode(value)
         elif value < node.value:
             node.left = self._add_recursive(node.left, value)
-            node.left.parent = node  # Update parent pointer
         else:
             node.right = self._add_recursive(node.right, value)
-            node.right.parent = node  # Update parent pointer
 
         # Update height of the current node
-        node.height = 1 + max(self._get_height(node.left), self._get_height(node.right))
+        node.height = 1 + max(self._height(node.left), self._height(node.right))
 
-        # Rebalance the AVL tree
-        return self._balance_recursive(node)
-
-    def remove(self, value):
-        """
-        Remove a value from the AVL tree. Returns True if the value is removed,
-        otherwise returns False.
-
-        Overrides the remove() method in the BST class to ensure AVL balance.
-
-        O(log N) runtime complexity.
-
-        Parameters:
-        - value: The value to be removed from the tree.
-
-        Returns:
-        - bool: True if the value is removed, False otherwise.
-        """
-        # Initialize parent and current pointers.
-        parent, current = None, self._root
-
-        # Search for the node to be removed.
-        while current and current.value != value:
-            parent = current
-            if value < current.value:
-                current = current.left
-            else:
-                current = current.right
-
-        # If the value is not found, return False.
-        if current is None:
-            return False
-
-        # Check the number of children of the node to be removed.
-        if current.left is None and current.right is None:
-            # Case 1: Node has no children, just remove it.
-            self._remove_leaf(parent, current)
-        elif current.left is not None and current.right is not None:
-            # Case 2: Node has two children, find the inorder successor.
-            self._remove_node_with_two_children(parent, current)
-        else:
-            # Case 3: Node has one child, replace it with the child.
-            self._remove_node_with_one_child(parent, current)
-
-        # Rebalance the AVL tree
-        self._balance_tree()
-
-        return True
-
-    def _remove_leaf(self, parent, node):
-        """
-        Helper method to remove a leaf node.
-
-        Parameters:
-        - parent: The parent node of the leaf node.
-        - node: The leaf node to be removed.
-
-        Returns:
-        - None
-        """
-        super()._remove_leaf(parent, node)
-        # Update height of the parent node
-        if parent:
-            parent.height = 1 + max(self._get_height(parent.left), self._get_height(parent.right))
-
-    def _remove_node_with_one_child(self, parent, node):
-        """
-        Helper method to remove a node with one child.
-
-        Parameters:
-        - parent: The parent node of the node to be removed.
-        - node: The node to be removed.
-
-        Returns:
-        - None
-        """
-        super()._remove_node_with_one_child(parent, node)
-        # Update height of the parent node
-        if parent:
-            parent.height = 1 + max(self._get_height(parent.left), self._get_height(parent.right))
-
-    def _remove_node_with_two_children(self, parent, node):
-        """
-        Helper method to remove a node with two children.
-
-        Parameters:
-        - parent: The parent node of the node to be removed.
-        - node: The node to be removed.
-
-        Returns:
-        - None
-        """
-        super()._remove_node_with_two_children(parent, node)
-        # Update height of the parent node
-        if parent:
-            parent.height = 1 + max(self._get_height(parent.left), self._get_height(parent.right))
-
-    def _balance_tree(self):
-        """
-        Rebalance the AVL tree after an insertion or removal.
-        """
-        if self._root:
-            self._root = self._balance_recursive(self._root)
-
-    def _balance_recursive(self, node):
-        """
-        Recursively balance the AVL tree.
-        """
-        # Update height of the current node
-        node.height = 1 + max(self._get_height(node.left), self._get_height(node.right))
-
-        # Check balance factor
+        # Get the balance factor and perform rotations if needed
         balance = self._get_balance(node)
 
-        # Left Heavy
-        if balance > 1:
-            if self._get_balance(node.left) < 0:
-                # Left-Right Rotation
-                node.left = self._left_rotate(node.left)
-            # Left-Left Rotation
-            return self._right_rotate(node)
+        # Left Left Case
+        if balance > 1 and value < node.left.value:
+            return self._rotate_right(node)
 
-        # Right Heavy
-        if balance < -1:
-            if self._get_balance(node.right) > 0:
-                # Right-Left Rotation
-                node.right = self._right_rotate(node.right)
-            # Right-Right Rotation
-            return self._left_rotate(node)
+        # Right Right Case
+        if balance < -1 and value > node.right.value:
+            return self._rotate_left(node)
 
-        return node
+        # Left Right Case
+        if balance > 1 and value > node.left.value:
+            node.left = self._rotate_left(node.left)
+            return self._rotate_right(node)
 
-    def _get_height(self, node):
-        """
-        Get the height of a node.
-        """
-        if node is None:
-            return 0
-        return node.height
+        # Right Left Case
+        if balance < -1 and value < node.right.value:
+            node.right = self._rotate_right(node.right)
+            return self._rotate_left(node)
 
-    def _get_balance(self, node):
+        return node  # Return the new root after rotations
+
+    def _get_balance(self, node: AVLNode) -> int:
         """
         Get the balance factor of a node.
-        """
-        if node is None:
-            return 0
-        return self._get_height(node.left) - self._get_height(node.right)
 
-    def _left_rotate(self, z):
-        """
-        Left rotation on the AVL tree.
-        """
-        y = z.right
-        T2 = y.left
+        Parameters:
+        - node: The AVL node.
 
-        y.left = z
-        z.right = T2
+        Returns:
+        - int: The balance factor.
+        """
+        return self._height(node.left) - self._height(node.right)
 
-        # Update height of the rotated nodes
-        z.height = 1 + max(self._get_height(z.left), self._get_height(z.right))
-        y.height = 1 + max(self._get_height(y.left), self._get_height(y.right))
+    def _rotate_right(self, z: AVLNode) -> AVLNode:
+        """
+        Perform a right rotation.
+
+        Parameters:
+        - z: The node at which the rotation is performed.
+
+        Returns:
+        - AVLNode: The new root after rotation.
+        """
+        y = z.left
+        T2 = y.right
+
+        # Perform rotation
+        y.right = z
+        z.left = T2
+
+        # Update heights
+        z.height = 1 + max(self._height(z.left), self._height(z.right))
+        y.height = 1 + max(self._height(y.left), self._height(y.right))
 
         return y
 
-    def _right_rotate(self, y):
+    def _rotate_left(self, y: AVLNode) -> AVLNode:
         """
-        Right rotation on the AVL tree.
+        Perform a left rotation.
+
+        Parameters:
+        - y: The node at which the rotation is performed.
+
+        Returns:
+        - AVLNode: The new root after rotation.
         """
-        x = y.left
-        T2 = x.right
+        x = y.right
+        T2 = x.left
 
-        x.right = y
-        y.left = T2
+        # Perform rotation
+        x.left = y
+        y.right = T2
 
-        # Update height of the rotated nodes
-        y.height = 1 + max(self._get_height(y.left), self._get_height(y.right))
-        x.height = 1 + max(self._get_height(x.left), self._get_height(x.right))
+        # Update heights
+        y.height = 1 + max(self._height(y.left), self._height(y.right))
+        x.height = 1 + max(self._height(x.left), self._height(x.right))
 
         return x
+
+    def remove(self, value: object) -> bool:
+        """
+                Remove the value from the AVL tree.
+
+                Parameters:
+                - value: The value to be removed.
+
+                Returns:
+                - bool: True if the value is removed, False otherwise.
+                """
+        if not self.contains(value):
+            return False
+
+        self._root = self._remove_recursive(self._root, value)
+        return True
+
+    def _remove_recursive(self, node: AVLNode, value: object) -> AVLNode:
+        """
+        Helper method for recursive removal of a value from the AVL tree.
+
+        Parameters:
+        - node: The current node in the recursion.
+        - value: The value to be removed.
+
+        Returns:
+        - AVLNode: The root of the modified subtree.
+        """
+        if node is None:
+            return None
+
+        # Perform standard BST delete
+        if value < node.value:
+            node.left = self._remove_recursive(node.left, value)
+        elif value > node.value:
+            node.right = self._remove_recursive(node.right, value)
+        else:
+            # Node with only one child or no child
+            if node.left is None:
+                return node.right
+            elif node.right is None:
+                return node.left
+
+            # Node with two children: Get the inorder successor (smallest
+            # in the right subtree)
+            successor = self._get_min_value_node(node.right)
+
+            # Copy the inorder successor's value to this node
+            node.value = successor.value
+
+            # Delete the inorder successor
+            node.right = self._remove_recursive(node.right, successor.value)
+
+        # Update height of the current node
+        node.height = 1 + max(self._height(node.left), self._height(node.right))
+
+        # Get the balance factor and perform rotations if needed
+        balance = self._get_balance(node)
+
+        # Left Left Case
+        if balance > 1 and self._get_balance(node.left) >= 0:
+            return self._rotate_right(node)
+
+        # Right Right Case
+        if balance < -1 and self._get_balance(node.right) <= 0:
+            return self._rotate_left(node)
+
+        # Left Right Case
+        if balance > 1 and self._get_balance(node.left) < 0:
+            node.left = self._rotate_left(node.left)
+            return self._rotate_right(node)
+
+        # Right Left Case
+        if balance < -1 and self._get_balance(node.right) > 0:
+            node.right = self._rotate_right(node.right)
+            return self._rotate_left(node)
+
+        return node
+
+    def _get_min_value_node(self, node: AVLNode) -> AVLNode:
+        """
+        Helper method to find the node with the minimum value in a subtree.
+
+        Parameters:
+        - node: The root of the subtree.
+
+        Returns:
+        - AVLNode: The node with the minimum value.
+        """
+        current = node
+        while current.left is not None:
+            current = current.left
+        return current

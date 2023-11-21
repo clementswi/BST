@@ -121,8 +121,9 @@ class AVL(BST):
         else:
             # Call a helper function to recursively add the value to the tree.
             self._root = self._add_recursive(self._root, value)
-            # Update the height of the root node.
-            self._root.height = 1 + max(self._get_height(self._root.left), self._get_height(self._root.right))
+
+        # Update the height of the root node.
+        self._root.height = 1 + max(self._get_height(self._root.left), self._get_height(self._root.right))
 
     def _add_recursive(self, node, value):
         """
